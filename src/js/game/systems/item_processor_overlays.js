@@ -25,6 +25,51 @@ export class ItemProcessorOverlaysSystem extends GameSystem {
     }
 
     /**
+     * Draws a given entity
+     * @param {import("../../core/draw_utils").DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     * @param {Entity} entity
+     */
+    drawChunkEntity(parameters, chunk, entity) {
+        const processorComp = entity.components.ItemProcessor;
+        const filterComp = entity.components.Filter;
+
+        // Draw processor overlays
+        if (processorComp) {
+            const requirement = processorComp.processingRequirement;
+            if (!requirement && processorComp.type !== enumItemProcessorTypes.reader) {
+                return;
+            }
+
+            if (this.drawnUids.has(entity.uid)) {
+                return;
+            }
+            this.drawnUids.add(entity.uid);
+
+            switch (requirement) {
+                case enumItemProcessorRequirements.painterQuad: {
+                    this.drawConnectedSlotRequirement(parameters, entity, { drawIfFalse: true });
+                    break;
+                }
+            }
+
+            if (processorComp.type === enumItemProcessorTypes.reader) {
+                this.drawReaderOverlays(parameters, entity);
+            }
+        }
+
+        // Draw filter overlays
+        else if (filterComp) {
+            if (this.drawnUids.has(entity.uid)) {
+                return;
+            }
+            this.drawnUids.add(entity.uid);
+
+            this.drawConnectedSlotRequirement(parameters, entity, { drawIfFalse: false });
+        }
+    }
+
+    /**
      *
      * @param {import("../../core/draw_utils").DrawParameters} parameters
      * @param {MapChunkView} chunk
@@ -32,43 +77,7 @@ export class ItemProcessorOverlaysSystem extends GameSystem {
     drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
         for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-            const processorComp = entity.components.ItemProcessor;
-            const filterComp = entity.components.Filter;
-
-            // Draw processor overlays
-            if (processorComp) {
-                const requirement = processorComp.processingRequirement;
-                if (!requirement && processorComp.type !== enumItemProcessorTypes.reader) {
-                    continue;
-                }
-
-                if (this.drawnUids.has(entity.uid)) {
-                    continue;
-                }
-                this.drawnUids.add(entity.uid);
-
-                switch (requirement) {
-                    case enumItemProcessorRequirements.painterQuad: {
-                        this.drawConnectedSlotRequirement(parameters, entity, { drawIfFalse: true });
-                        break;
-                    }
-                }
-
-                if (processorComp.type === enumItemProcessorTypes.reader) {
-                    this.drawReaderOverlays(parameters, entity);
-                }
-            }
-
-            // Draw filter overlays
-            else if (filterComp) {
-                if (this.drawnUids.has(entity.uid)) {
-                    continue;
-                }
-                this.drawnUids.add(entity.uid);
-
-                this.drawConnectedSlotRequirement(parameters, entity, { drawIfFalse: false });
-            }
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 

@@ -489,11 +489,16 @@ export class BeltSystem extends GameSystemWithFilter {
     }
 
     /**
-     * Draws a given chunk
+     * Draws a given entity
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
+     * @param {Entity} entity
      */
-    drawChunk(parameters, chunk) {
+    drawChunkEntity(parameters, chunk, entity) {
+        if (!entity.components.Belt) {
+            return;
+        }
+
         // Limit speed to avoid belts going backwards
         const speedMultiplier = Math.min(this.root.hubGoals.getBeltBaseSpeed(), 10);
 
@@ -503,7 +508,6 @@ export class BeltSystem extends GameSystemWithFilter {
             ((this.root.time.realtimeNow() * speedMultiplier * BELT_ANIM_COUNT * 126) / 42) *
                 globalConfig.itemSpacingOnBelts
         );
-        const contents = chunk.containedEntitiesByLayer.regular;
 
         if (this.root.app.settings.getAllSettings().simplifiedBelts) {
             // POTATO Mode: Only show items when belt is hovered
@@ -517,31 +521,33 @@ export class BeltSystem extends GameSystemWithFilter {
                 }
             }
 
-            for (let i = 0; i < contents.length; ++i) {
-                const entity = contents[i];
-                if (entity.components.Belt) {
-                    const direction = entity.components.Belt.direction;
-                    let sprite = this.beltAnimations[direction][0];
+            const direction = entity.components.Belt.direction;
+            let sprite = this.beltAnimations[direction][0];
 
-                    if (entity.components.Belt.assignedPath === hoveredBeltPath) {
-                        sprite = this.beltAnimations[direction][animationIndex % BELT_ANIM_COUNT];
-                    }
-
-                    // Culling happens within the static map entity component
-                    entity.components.StaticMapEntity.drawSpriteOnBoundsClipped(parameters, sprite, 0);
-                }
+            if (entity.components.Belt.assignedPath === hoveredBeltPath) {
+                sprite = this.beltAnimations[direction][animationIndex % BELT_ANIM_COUNT];
             }
+
+            // Culling happens within the static map entity component
+            entity.components.StaticMapEntity.drawSpriteOnBoundsClipped(parameters, sprite, 0);
         } else {
-            for (let i = 0; i < contents.length; ++i) {
-                const entity = contents[i];
-                if (entity.components.Belt) {
-                    const direction = entity.components.Belt.direction;
-                    const sprite = this.beltAnimations[direction][animationIndex % BELT_ANIM_COUNT];
+            const direction = entity.components.Belt.direction;
+            const sprite = this.beltAnimations[direction][animationIndex % BELT_ANIM_COUNT];
 
-                    // Culling happens within the static map entity component
-                    entity.components.StaticMapEntity.drawSpriteOnBoundsClipped(parameters, sprite, 0);
-                }
-            }
+            // Culling happens within the static map entity component
+            entity.components.StaticMapEntity.drawSpriteOnBoundsClipped(parameters, sprite, 0);
+        }
+    }
+
+    /**
+     * Draws a given chunk
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     */
+    drawChunk(parameters, chunk) {
+        const contents = chunk.containedEntitiesByLayer.regular;
+        for (let i = 0; i < contents.length; ++i) {
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 

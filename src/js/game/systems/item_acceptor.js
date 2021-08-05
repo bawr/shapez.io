@@ -4,6 +4,7 @@ import { fastArrayDelete } from "../../core/utils";
 import { enumDirectionToVector } from "../../core/vector";
 import { ItemAcceptorComponent } from "../components/item_acceptor";
 import { GameSystemWithFilter } from "../game_system_with_filter";
+import { Entity } from "../entity";
 import { MapChunkView } from "../map_chunk_view";
 
 export class ItemAcceptorSystem extends GameSystemWithFilter {
@@ -57,50 +58,59 @@ export class ItemAcceptorSystem extends GameSystemWithFilter {
     }
 
     /**
+     * Draws a given entity
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
+     * @param {Entity} entity
      */
-    drawChunk(parameters, chunk) {
+    drawChunkEntity(parameters, chunk, entity) {
         if (this.root.app.settings.getAllSettings().simplifiedBelts) {
             // Disabled in potato mode
             return;
         }
 
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-            const acceptorComp = entity.components.ItemAcceptor;
-            if (!acceptorComp) {
+        const acceptorComp = entity.components.ItemAcceptor;
+        if (!acceptorComp) {
+            return;
+        }
+
+        const staticComp = entity.components.StaticMapEntity;
+        for (let animIndex = 0; animIndex < acceptorComp.itemConsumptionAnimations.length; ++animIndex) {
+            const { item, slotIndex, animProgress, direction } = acceptorComp.itemConsumptionAnimations[
+                animIndex
+            ];
+
+            const slotData = acceptorComp.slots[slotIndex];
+            const realSlotPos = staticComp.localTileToWorld(slotData.pos);
+
+            if (!chunk.tileSpaceRectangle.containsPoint(realSlotPos.x, realSlotPos.y)) {
+                // Not within this chunk
                 continue;
             }
 
-            const staticComp = entity.components.StaticMapEntity;
-            for (let animIndex = 0; animIndex < acceptorComp.itemConsumptionAnimations.length; ++animIndex) {
-                const { item, slotIndex, animProgress, direction } = acceptorComp.itemConsumptionAnimations[
-                    animIndex
-                ];
+            const fadeOutDirection = enumDirectionToVector[staticComp.localDirectionToWorld(direction)];
+            const finalTile = realSlotPos.subScalars(
+                fadeOutDirection.x * (animProgress / 2 - 0.5),
+                fadeOutDirection.y * (animProgress / 2 - 0.5)
+            );
 
-                const slotData = acceptorComp.slots[slotIndex];
-                const realSlotPos = staticComp.localTileToWorld(slotData.pos);
+            item.drawItemCenteredClipped(
+                (finalTile.x + 0.5) * globalConfig.tileSize,
+                (finalTile.y + 0.5) * globalConfig.tileSize,
+                parameters,
+                globalConfig.defaultItemDiameter
+            );
+        }
+    }
 
-                if (!chunk.tileSpaceRectangle.containsPoint(realSlotPos.x, realSlotPos.y)) {
-                    // Not within this chunk
-                    continue;
-                }
-
-                const fadeOutDirection = enumDirectionToVector[staticComp.localDirectionToWorld(direction)];
-                const finalTile = realSlotPos.subScalars(
-                    fadeOutDirection.x * (animProgress / 2 - 0.5),
-                    fadeOutDirection.y * (animProgress / 2 - 0.5)
-                );
-
-                item.drawItemCenteredClipped(
-                    (finalTile.x + 0.5) * globalConfig.tileSize,
-                    (finalTile.y + 0.5) * globalConfig.tileSize,
-                    parameters,
-                    globalConfig.defaultItemDiameter
-                );
-            }
+    /**
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     */
+    drawChunk(parameters, chunk) {
+        const contents = chunk.containedEntitiesByLayer.regular;
+        for (let i = 0; i < contents.length; ++i) {
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 }

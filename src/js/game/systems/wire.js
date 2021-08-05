@@ -600,7 +600,7 @@ export class WireSystem extends GameSystemWithFilter {
      * @param {import("../../core/draw_utils").DrawParameters} parameters
      * @param {MapChunkView} chunk
      */
-    drawChunk(parameters, chunk) {
+    drawChunkGlobal(parameters, chunk) {
         const contents = chunk.wireContents;
         for (let y = 0; y < globalConfig.mapChunkSize; ++y) {
             for (let x = 0; x < globalConfig.mapChunkSize; ++x) {
@@ -704,6 +704,15 @@ export class WireSystem extends GameSystemWithFilter {
         const originalRect = staticComp.getTileSpaceBounds();
         const affectedArea = originalRect.expandedInAllDirections(1);
         this.staleArea.invalidate(affectedArea);
+    }
+
+    /**
+     * Draws a given chunk
+     * @param {import("../../core/draw_utils").DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     */
+    drawChunk(parameters, chunk) {
+        this.drawChunkGlobal(parameters, chunk);
     }
 
     /**

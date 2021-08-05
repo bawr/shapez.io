@@ -11,7 +11,7 @@ export class MapResourcesSystem extends GameSystem {
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
      */
-    drawChunk(parameters, chunk) {
+    drawChunkGlobal(parameters, chunk) {
         const basicChunkBackground = this.root.buffers.getForKey({
             key: "mapresourcebg",
             subKey: chunk.renderKey,
@@ -80,6 +80,15 @@ export class MapResourcesSystem extends GameSystem {
             }
         }
         parameters.context.globalAlpha = 1;
+    }
+
+    /**
+     * Draws the map resources
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     */
+    drawChunk(parameters, chunk) {
+        this.drawChunkGlobal(parameters, chunk);
     }
 
     /**

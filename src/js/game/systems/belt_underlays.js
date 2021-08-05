@@ -217,84 +217,91 @@ export class BeltUnderlaysSystem extends GameSystemWithFilter {
     }
 
     /**
+     * Draws a given entity
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     * @param {Entity} entity
+     */
+    drawChunkEntity(parameters, chunk, entity) {
+        const underlayComp = entity.components.BeltUnderlays;
+        if (!underlayComp) {
+            return;
+        }
+
+        // Limit speed to avoid belts going backwards
+        const speedMultiplier = Math.min(this.root.hubGoals.getBeltBaseSpeed(), 10);
+
+        const staticComp = entity.components.StaticMapEntity;
+        const underlays = underlayComp.underlays;
+        for (let i = 0; i < underlays.length; ++i) {
+            // Extract underlay parameters
+            const { pos, direction } = underlays[i];
+            const transformedPos = staticComp.localTileToWorld(pos);
+            const destX = transformedPos.x * globalConfig.tileSize;
+            const destY = transformedPos.y * globalConfig.tileSize;
+
+            // Culling, Part 1: Check if the chunk contains the tile
+            if (!chunk.tileSpaceRectangle.containsPoint(transformedPos.x, transformedPos.y)) {
+                continue;
+            }
+
+            // Culling, Part 2: Check if the overlay is visible
+            if (
+                !parameters.visibleRect.containsRect4Params(
+                    destX,
+                    destY,
+                    globalConfig.tileSize,
+                    globalConfig.tileSize
+                )
+            ) {
+                continue;
+            }
+
+            // Extract direction and angle
+            const worldDirection = staticComp.localDirectionToWorld(direction);
+            const angle = enumDirectionToAngle[worldDirection];
+
+            const underlayType = this.computeBeltUnderlayType(entity, underlays[i]);
+            const clipRect = enumUnderlayTypeToClipRect[underlayType];
+            if (!clipRect) {
+                // Empty
+                continue;
+            }
+
+            // Actually draw the sprite
+            const x = destX + globalConfig.halfTileSize;
+            const y = destY + globalConfig.halfTileSize;
+            const angleRadians = Math.radians(angle);
+
+            // SYNC with systems/belt.js:drawSingleEntity!
+            const animationIndex = Math.floor(
+                ((this.root.time.realtimeNow() * speedMultiplier * BELT_ANIM_COUNT * 126) / 42) *
+                    globalConfig.itemSpacingOnBelts
+            );
+            parameters.context.translate(x, y);
+            parameters.context.rotate(angleRadians);
+            this.underlayBeltSprites[animationIndex % this.underlayBeltSprites.length].drawCachedWithClipRect(
+                parameters,
+                -globalConfig.halfTileSize,
+                -globalConfig.halfTileSize,
+                globalConfig.tileSize,
+                globalConfig.tileSize,
+                clipRect
+            );
+            parameters.context.rotate(-angleRadians);
+            parameters.context.translate(-x, -y);
+        }
+    }
+
+    /**
      * Draws a given chunk
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
      */
     drawChunk(parameters, chunk) {
-        // Limit speed to avoid belts going backwards
-        const speedMultiplier = Math.min(this.root.hubGoals.getBeltBaseSpeed(), 10);
-
         const contents = chunk.containedEntitiesByLayer.regular;
         for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-            const underlayComp = entity.components.BeltUnderlays;
-            if (!underlayComp) {
-                continue;
-            }
-
-            const staticComp = entity.components.StaticMapEntity;
-            const underlays = underlayComp.underlays;
-            for (let i = 0; i < underlays.length; ++i) {
-                // Extract underlay parameters
-                const { pos, direction } = underlays[i];
-                const transformedPos = staticComp.localTileToWorld(pos);
-                const destX = transformedPos.x * globalConfig.tileSize;
-                const destY = transformedPos.y * globalConfig.tileSize;
-
-                // Culling, Part 1: Check if the chunk contains the tile
-                if (!chunk.tileSpaceRectangle.containsPoint(transformedPos.x, transformedPos.y)) {
-                    continue;
-                }
-
-                // Culling, Part 2: Check if the overlay is visible
-                if (
-                    !parameters.visibleRect.containsRect4Params(
-                        destX,
-                        destY,
-                        globalConfig.tileSize,
-                        globalConfig.tileSize
-                    )
-                ) {
-                    continue;
-                }
-
-                // Extract direction and angle
-                const worldDirection = staticComp.localDirectionToWorld(direction);
-                const angle = enumDirectionToAngle[worldDirection];
-
-                const underlayType = this.computeBeltUnderlayType(entity, underlays[i]);
-                const clipRect = enumUnderlayTypeToClipRect[underlayType];
-                if (!clipRect) {
-                    // Empty
-                    continue;
-                }
-
-                // Actually draw the sprite
-                const x = destX + globalConfig.halfTileSize;
-                const y = destY + globalConfig.halfTileSize;
-                const angleRadians = Math.radians(angle);
-
-                // SYNC with systems/belt.js:drawSingleEntity!
-                const animationIndex = Math.floor(
-                    ((this.root.time.realtimeNow() * speedMultiplier * BELT_ANIM_COUNT * 126) / 42) *
-                        globalConfig.itemSpacingOnBelts
-                );
-                parameters.context.translate(x, y);
-                parameters.context.rotate(angleRadians);
-                this.underlayBeltSprites[
-                    animationIndex % this.underlayBeltSprites.length
-                ].drawCachedWithClipRect(
-                    parameters,
-                    -globalConfig.halfTileSize,
-                    -globalConfig.halfTileSize,
-                    globalConfig.tileSize,
-                    globalConfig.tileSize,
-                    clipRect
-                );
-                parameters.context.rotate(-angleRadians);
-                parameters.context.translate(-x, -y);
-            }
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 }

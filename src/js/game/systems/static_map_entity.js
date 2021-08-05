@@ -1,5 +1,6 @@
 import { globalConfig } from "../../core/config";
 import { DrawParameters } from "../../core/draw_parameters";
+import { Entity } from "../entity";
 import { GameSystem } from "../game_system";
 import { MapChunkView } from "../map_chunk_view";
 
@@ -24,28 +25,35 @@ export class StaticMapEntitySystem extends GameSystem {
      * Draws the static entities
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
+     * @param {Entity} entity
      */
-    drawChunk(parameters, chunk) {
+    drawChunkEntity(parameters, chunk, entity) {
         if (G_IS_DEV && globalConfig.debug.doNotRenderStatics) {
             return;
         }
+        const staticComp = entity.components.StaticMapEntity;
+        const sprite = staticComp.getSprite();
+        if (sprite) {
+            // Avoid drawing an entity twice which has been drawn for
+            // another chunk already
+            if (this.drawnUids.has(entity.uid)) {
+                return;
+            }
 
+            this.drawnUids.add(entity.uid);
+            staticComp.drawSpriteOnBoundsClipped(parameters, sprite, 2);
+        }
+    }
+
+    /**
+     * Draws the static entities
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     */
+    drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
         for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-
-            const staticComp = entity.components.StaticMapEntity;
-            const sprite = staticComp.getSprite();
-            if (sprite) {
-                // Avoid drawing an entity twice which has been drawn for
-                // another chunk already
-                if (this.drawnUids.has(entity.uid)) {
-                    continue;
-                }
-
-                this.drawnUids.add(entity.uid);
-                staticComp.drawSpriteOnBoundsClipped(parameters, sprite, 2);
-            }
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 

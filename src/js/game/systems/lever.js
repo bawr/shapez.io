@@ -1,3 +1,4 @@
+import { Entity } from "../entity";
 import { GameSystemWithFilter } from "../game_system_with_filter";
 import { LeverComponent } from "../components/lever";
 import { BOOL_TRUE_SINGLETON, BOOL_FALSE_SINGLETON } from "../items/boolean_item";
@@ -26,6 +27,20 @@ export class LeverSystem extends GameSystemWithFilter {
     }
 
     /**
+     * Draws a given entity
+     * @param {import("../../core/draw_utils").DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     * @param {Entity} entity
+     */
+    drawChunkEntity(parameters, chunk, entity) {
+        const leverComp = entity.components.Lever;
+        if (leverComp) {
+            const sprite = leverComp.toggled ? this.spriteOn : this.spriteOff;
+            entity.components.StaticMapEntity.drawSpriteOnBoundsClipped(parameters, sprite);
+        }
+    }
+
+    /**
      * Draws a given chunk
      * @param {import("../../core/draw_utils").DrawParameters} parameters
      * @param {MapChunkView} chunk
@@ -33,12 +48,7 @@ export class LeverSystem extends GameSystemWithFilter {
     drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
         for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-            const leverComp = entity.components.Lever;
-            if (leverComp) {
-                const sprite = leverComp.toggled ? this.spriteOn : this.spriteOff;
-                entity.components.StaticMapEntity.drawSpriteOnBoundsClipped(parameters, sprite);
-            }
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 }

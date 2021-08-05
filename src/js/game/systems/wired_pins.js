@@ -154,7 +154,7 @@ export class WiredPinsSystem extends GameSystemWithFilter {
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
      */
-    drawChunk(parameters, chunk) {
+    drawChunkGlobal(parameters, chunk) {
         const contents = chunk.containedEntities;
 
         for (let i = 0; i < contents.length; ++i) {
@@ -230,5 +230,14 @@ export class WiredPinsSystem extends GameSystemWithFilter {
                 }
             }
         }
+    }
+
+    /**
+     * Draws a given entity
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     */
+    drawChunk(parameters, chunk) {
+        this.drawChunkGlobal(parameters, chunk);
     }
 }

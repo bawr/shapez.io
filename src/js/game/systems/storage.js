@@ -1,3 +1,4 @@
+import { Entity } from "../entity";
 import { GameSystemWithFilter } from "../game_system_with_filter";
 import { StorageComponent } from "../components/storage";
 import { DrawParameters } from "../../core/draw_parameters";
@@ -58,44 +59,52 @@ export class StorageSystem extends GameSystemWithFilter {
     /**
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
+     * @param {Entity} entity
+     */
+    drawChunkEntity(parameters, chunk, entity) {
+        const storageComp = entity.components.Storage;
+        if (!storageComp) {
+            return;
+        }
+
+        const storedItem = storageComp.storedItem;
+        if (!storedItem) {
+            return;
+        }
+
+        if (this.drawnUids.has(entity.uid)) {
+            return;
+        }
+
+        this.drawnUids.add(entity.uid);
+
+        const staticComp = entity.components.StaticMapEntity;
+
+        const context = parameters.context;
+        context.globalAlpha = storageComp.overlayOpacity;
+        const center = staticComp.getTileSpaceBounds().getCenter().toWorldSpace();
+        storedItem.drawItemCenteredClipped(center.x, center.y, parameters, 30);
+
+        this.storageOverlaySprite.drawCached(parameters, center.x - 15, center.y + 15, 30, 15);
+
+        if (parameters.visibleRect.containsCircle(center.x, center.y + 25, 20)) {
+            context.font = "bold 10px GameFont";
+            context.textAlign = "center";
+            context.fillStyle = "#64666e";
+            context.fillText(formatBigNumber(storageComp.storedCount), center.x, center.y + 25.5);
+            context.textAlign = "left";
+        }
+        context.globalAlpha = 1;
+    }
+
+    /**
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
      */
     drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
         for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-            const storageComp = entity.components.Storage;
-            if (!storageComp) {
-                continue;
-            }
-
-            const storedItem = storageComp.storedItem;
-            if (!storedItem) {
-                continue;
-            }
-
-            if (this.drawnUids.has(entity.uid)) {
-                continue;
-            }
-
-            this.drawnUids.add(entity.uid);
-
-            const staticComp = entity.components.StaticMapEntity;
-
-            const context = parameters.context;
-            context.globalAlpha = storageComp.overlayOpacity;
-            const center = staticComp.getTileSpaceBounds().getCenter().toWorldSpace();
-            storedItem.drawItemCenteredClipped(center.x, center.y, parameters, 30);
-
-            this.storageOverlaySprite.drawCached(parameters, center.x - 15, center.y + 15, 30, 15);
-
-            if (parameters.visibleRect.containsCircle(center.x, center.y + 25, 20)) {
-                context.font = "bold 10px GameFont";
-                context.textAlign = "center";
-                context.fillStyle = "#64666e";
-                context.fillText(formatBigNumber(storageComp.storedCount), center.x, center.y + 25.5);
-                context.textAlign = "left";
-            }
-            context.globalAlpha = 1;
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 }

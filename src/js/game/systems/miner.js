@@ -161,41 +161,49 @@ export class MinerSystem extends GameSystemWithFilter {
      *
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk
+     * @param {Entity} entity
+     */
+    drawChunkEntity(parameters, chunk, entity) {
+        const minerComp = entity.components.Miner;
+        if (!minerComp) {
+            return;
+        }
+
+        const staticComp = entity.components.StaticMapEntity;
+        if (!minerComp.cachedMinedItem) {
+            return;
+        }
+
+        // Draw the item background - this is to hide the ejected item animation from
+        // the item ejector
+
+        const padding = 3;
+        const destX = staticComp.origin.x * globalConfig.tileSize + padding;
+        const destY = staticComp.origin.y * globalConfig.tileSize + padding;
+        const dimensions = globalConfig.tileSize - 2 * padding;
+
+        if (parameters.visibleRect.containsRect4Params(destX, destY, dimensions, dimensions)) {
+            parameters.context.fillStyle = minerComp.cachedMinedItem.getBackgroundColorAsResource();
+            parameters.context.fillRect(destX, destY, dimensions, dimensions);
+        }
+
+        minerComp.cachedMinedItem.drawItemCenteredClipped(
+            (0.5 + staticComp.origin.x) * globalConfig.tileSize,
+            (0.5 + staticComp.origin.y) * globalConfig.tileSize,
+            parameters,
+            globalConfig.defaultItemDiameter
+        );
+    }
+
+    /**
+     *
+     * @param {DrawParameters} parameters
+     * @param {MapChunkView} chunk
      */
     drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
-
         for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-            const minerComp = entity.components.Miner;
-            if (!minerComp) {
-                continue;
-            }
-
-            const staticComp = entity.components.StaticMapEntity;
-            if (!minerComp.cachedMinedItem) {
-                continue;
-            }
-
-            // Draw the item background - this is to hide the ejected item animation from
-            // the item ejector
-
-            const padding = 3;
-            const destX = staticComp.origin.x * globalConfig.tileSize + padding;
-            const destY = staticComp.origin.y * globalConfig.tileSize + padding;
-            const dimensions = globalConfig.tileSize - 2 * padding;
-
-            if (parameters.visibleRect.containsRect4Params(destX, destY, dimensions, dimensions)) {
-                parameters.context.fillStyle = minerComp.cachedMinedItem.getBackgroundColorAsResource();
-                parameters.context.fillRect(destX, destY, dimensions, dimensions);
-            }
-
-            minerComp.cachedMinedItem.drawItemCenteredClipped(
-                (0.5 + staticComp.origin.x) * globalConfig.tileSize,
-                (0.5 + staticComp.origin.y) * globalConfig.tileSize,
-                parameters,
-                globalConfig.defaultItemDiameter
-            );
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 }

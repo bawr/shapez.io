@@ -6,6 +6,7 @@ import { DisplayComponent } from "../components/display";
 import { GameSystemWithFilter } from "../game_system_with_filter";
 import { isTrueItem } from "../items/boolean_item";
 import { ColorItem, COLOR_ITEM_SINGLETONS } from "../items/color_item";
+import { Entity } from "../entity";
 import { MapChunkView } from "../map_chunk_view";
 
 export class DisplaySystem extends GameSystemWithFilter {
@@ -53,6 +54,51 @@ export class DisplaySystem extends GameSystemWithFilter {
     }
 
     /**
+     * Draws a given entity
+     * @param {import("../../core/draw_utils").DrawParameters} parameters
+     * @param {MapChunkView} chunk
+     * @param {Entity} entity
+     */
+    drawChunkEntity(parameters, chunk, entity) {
+        if (!entity) {
+            return;
+        }
+        if (!entity.components.Display) {
+            return;
+        }
+
+        const pinsComp = entity.components.WiredPins;
+        const network = pinsComp.slots[0].linkedNetwork;
+
+        if (!network || !network.hasValue()) {
+            return;
+        }
+
+        const value = this.getDisplayItem(network.currentValue);
+
+        if (!value) {
+            return;
+        }
+
+        const origin = entity.components.StaticMapEntity.origin;
+        if (value.getItemType() === "color") {
+            this.displaySprites[/** @type {ColorItem} */ (value).color].drawCachedCentered(
+                parameters,
+                (origin.x + 0.5) * globalConfig.tileSize,
+                (origin.y + 0.5) * globalConfig.tileSize,
+                globalConfig.tileSize
+            );
+        } else if (value.getItemType() === "shape") {
+            value.drawItemCenteredClipped(
+                (origin.x + 0.5) * globalConfig.tileSize,
+                (origin.y + 0.5) * globalConfig.tileSize,
+                parameters,
+                30
+            );
+        }
+    }
+
+    /**
      * Draws a given chunk
      * @param {import("../../core/draw_utils").DrawParameters} parameters
      * @param {MapChunkView} chunk
@@ -60,38 +106,7 @@ export class DisplaySystem extends GameSystemWithFilter {
     drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
         for (let i = 0; i < contents.length; ++i) {
-            const entity = contents[i];
-            if (entity && entity.components.Display) {
-                const pinsComp = entity.components.WiredPins;
-                const network = pinsComp.slots[0].linkedNetwork;
-
-                if (!network || !network.hasValue()) {
-                    continue;
-                }
-
-                const value = this.getDisplayItem(network.currentValue);
-
-                if (!value) {
-                    continue;
-                }
-
-                const origin = entity.components.StaticMapEntity.origin;
-                if (value.getItemType() === "color") {
-                    this.displaySprites[/** @type {ColorItem} */ (value).color].drawCachedCentered(
-                        parameters,
-                        (origin.x + 0.5) * globalConfig.tileSize,
-                        (origin.y + 0.5) * globalConfig.tileSize,
-                        globalConfig.tileSize
-                    );
-                } else if (value.getItemType() === "shape") {
-                    value.drawItemCenteredClipped(
-                        (origin.x + 0.5) * globalConfig.tileSize,
-                        (origin.y + 0.5) * globalConfig.tileSize,
-                        parameters,
-                        30
-                    );
-                }
-            }
+            this.drawChunkEntity(parameters, chunk, contents[i]);
         }
     }
 }
