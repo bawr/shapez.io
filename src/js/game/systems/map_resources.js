@@ -83,15 +83,6 @@ export class MapResourcesSystem extends GameSystem {
     }
 
     /**
-     * Draws the map resources
-     * @param {DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        this.drawChunkGlobal(parameters, chunk);
-    }
-
-    /**
      *
      * @param {MapChunkView} chunk
      * @param {HTMLCanvasElement} canvas

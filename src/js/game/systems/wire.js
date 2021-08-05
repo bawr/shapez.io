@@ -707,15 +707,6 @@ export class WireSystem extends GameSystemWithFilter {
     }
 
     /**
-     * Draws a given chunk
-     * @param {import("../../core/draw_utils").DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        this.drawChunkGlobal(parameters, chunk);
-    }
-
-    /**
      * Updates the wire placement after an entity has been added / deleted
      * @param {Rectangle} affectedArea
      */

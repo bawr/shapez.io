@@ -46,18 +46,6 @@ export class StaticMapEntitySystem extends GameSystem {
     }
 
     /**
-     * Draws the static entities
-     * @param {DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            this.drawChunkEntity(parameters, chunk, contents[i]);
-        }
-    }
-
-    /**
      * Draws the static wire entities
      * @param {DrawParameters} parameters
      * @param {MapChunkView} chunk

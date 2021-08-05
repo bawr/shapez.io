@@ -102,13 +102,4 @@ export class ZoneSystem extends GameSystem {
 
         context.globalAlpha = 1;
     }
-
-    /**
-     * Draws the zone
-     * @param {DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        this.drawChunkGlobal(parameters, chunk);
-    }
 }

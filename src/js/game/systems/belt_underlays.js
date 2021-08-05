@@ -292,16 +292,4 @@ export class BeltUnderlaysSystem extends GameSystemWithFilter {
             parameters.context.translate(-x, -y);
         }
     }
-
-    /**
-     * Draws a given chunk
-     * @param {DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            this.drawChunkEntity(parameters, chunk, contents[i]);
-        }
-    }
 }

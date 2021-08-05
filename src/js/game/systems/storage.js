@@ -96,15 +96,4 @@ export class StorageSystem extends GameSystemWithFilter {
         }
         context.globalAlpha = 1;
     }
-
-    /**
-     * @param {DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            this.drawChunkEntity(parameters, chunk, contents[i]);
-        }
-    }
 }

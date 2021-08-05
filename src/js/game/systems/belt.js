@@ -540,18 +540,6 @@ export class BeltSystem extends GameSystemWithFilter {
     }
 
     /**
-     * Draws a given chunk
-     * @param {DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            this.drawChunkEntity(parameters, chunk, contents[i]);
-        }
-    }
-
-    /**
      * Draws the belt path debug overlays
      * @param {DrawParameters} parameters
      */

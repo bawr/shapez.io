@@ -132,17 +132,4 @@ export class GoalAcceptorSystem extends GameSystemWithFilter {
         parameters.context.rotate((-staticComp.rotation / 180) * Math.PI);
         parameters.context.translate(-center.x, -center.y);
     }
-
-    /**
-     *
-     * @param {DrawParameters} parameters
-     * @param {MapChunk} chunk
-     * @returns
-     */
-    drawChunk(parameters, chunk) {
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            this.drawChunkEntity(parameters, chunk, contents[i]);
-        }
-    }
 }

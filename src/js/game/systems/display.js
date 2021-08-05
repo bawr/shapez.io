@@ -97,16 +97,4 @@ export class DisplaySystem extends GameSystemWithFilter {
             );
         }
     }
-
-    /**
-     * Draws a given chunk
-     * @param {import("../../core/draw_utils").DrawParameters} parameters
-     * @param {MapChunkView} chunk
-     */
-    drawChunk(parameters, chunk) {
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            this.drawChunkEntity(parameters, chunk, contents[i]);
-        }
-    }
 }

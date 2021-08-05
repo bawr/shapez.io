@@ -57,17 +57,4 @@ export class ConstantProducerSystem extends GameSystemWithFilter {
             globalConfig.tileSize * 0.65
         );
     }
-
-    /**
-     *
-     * @param {DrawParameters} parameters
-     * @param {MapChunk} chunk
-     * @returns
-     */
-    drawChunk(parameters, chunk) {
-        const contents = chunk.containedEntitiesByLayer.regular;
-        for (let i = 0; i < contents.length; ++i) {
-            this.drawChunkEntity(parameters, chunk, contents[i]);
-        }
-    }
 }

@@ -42,15 +42,18 @@ export class MapChunkView extends MapChunk {
     drawBackgroundLayer(parameters) {
         const systems = this.root.systemMgr.systems;
         if (systems.zone) {
-            systems.zone.drawChunk(parameters, this);
+            systems.zone.drawChunkGlobal(parameters, this);
         }
 
         if (this.root.gameMode.hasResources()) {
-            systems.mapResources.drawChunk(parameters, this);
+            systems.mapResources.drawChunkGlobal(parameters, this);
         }
 
-        systems.beltUnderlays.drawChunk(parameters, this);
-        systems.belt.drawChunk(parameters, this);
+        const contents = this.containedEntitiesByLayer.regular;
+        for (let i = 0; i < contents.length; ++i) {
+            systems.beltUnderlays.drawChunkEntity(parameters, this, contents[i]);
+            systems.belt.drawChunkEntity(parameters, this, contents[i]);
+        }
     }
 
     /**
@@ -60,9 +63,12 @@ export class MapChunkView extends MapChunk {
     drawForegroundDynamicLayer(parameters) {
         const systems = this.root.systemMgr.systems;
 
-        systems.itemEjector.drawChunk(parameters, this);
-        systems.itemAcceptor.drawChunk(parameters, this);
-        systems.miner.drawChunk(parameters, this);
+        const contents = this.containedEntitiesByLayer.regular;
+        for (let i = 0; i < contents.length; ++i) {
+            systems.itemEjector.drawChunkEntity(parameters, this, contents[i]);
+            systems.itemAcceptor.drawChunkEntity(parameters, this, contents[i]);
+            systems.miner.drawChunkEntity(parameters, this, contents[i]);
+        }
     }
 
     /**
@@ -72,13 +78,16 @@ export class MapChunkView extends MapChunk {
     drawForegroundStaticLayer(parameters) {
         const systems = this.root.systemMgr.systems;
 
-        systems.staticMapEntities.drawChunk(parameters, this);
-        systems.lever.drawChunk(parameters, this);
-        systems.display.drawChunk(parameters, this);
-        systems.storage.drawChunk(parameters, this);
-        systems.constantProducer.drawChunk(parameters, this);
-        systems.goalAcceptor.drawChunk(parameters, this);
-        systems.itemProcessorOverlays.drawChunk(parameters, this);
+        const contents = this.containedEntitiesByLayer.regular;
+        for (let i = 0; i < contents.length; ++i) {
+            systems.staticMapEntities.drawChunkEntity(parameters, this, contents[i]);
+            systems.lever.drawChunkEntity(parameters, this, contents[i]);
+            systems.display.drawChunkEntity(parameters, this, contents[i]);
+            systems.storage.drawChunkEntity(parameters, this, contents[i]);
+            systems.constantProducer.drawChunkEntity(parameters, this, contents[i]);
+            systems.goalAcceptor.drawChunkEntity(parameters, this, contents[i]);
+            systems.itemProcessorOverlays.drawChunkEntity(parameters, this, contents[i]);
+        }
     }
 
     /**
@@ -300,8 +309,8 @@ export class MapChunkView extends MapChunk {
      */
     drawWiresForegroundLayer(parameters) {
         const systems = this.root.systemMgr.systems;
-        systems.wire.drawChunk(parameters, this);
+        systems.wire.drawChunkGlobal(parameters, this);
         systems.staticMapEntities.drawWiresChunk(parameters, this);
-        systems.wiredPins.drawChunk(parameters, this);
+        systems.wiredPins.drawChunkGlobal(parameters, this);
     }
 }
